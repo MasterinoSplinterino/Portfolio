@@ -547,22 +547,10 @@ const carousel = {
     },
 
     updateCarousel() {
-        const wrapperWidth = this.wrapper.offsetWidth;
         const { cardWidth, gap } = this.getCardDimensions();
 
-        // On mobile (single card view), center the card
-        let offset;
-        if (this.cardsPerView === 1) {
-            // Center the card in the wrapper
-            const cardCenter = this.currentIndex * (cardWidth + gap) + cardWidth / 2;
-            offset = cardCenter - wrapperWidth / 2;
-            // Clamp offset to valid range
-            const maxOffset = (this.totalCards * (cardWidth + gap)) - gap - wrapperWidth;
-            offset = Math.max(0, Math.min(offset, maxOffset));
-        } else {
-            offset = this.currentIndex * (cardWidth + gap);
-        }
-
+        // Simple offset calculation - just move by card + gap
+        const offset = this.currentIndex * (cardWidth + gap);
         this.track.style.transform = `translateX(-${offset}px)`;
 
         // Update buttons state
