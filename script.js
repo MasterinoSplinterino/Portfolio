@@ -79,6 +79,15 @@ const asciiArt = `
 
 const asciiElement = document.getElementById('ascii-animation');
 
+// Performance detection
+const isMobile = window.innerWidth <= 768;
+const isSlowConnection = navigator.connection &&
+    (navigator.connection.saveData ||
+     navigator.connection.effectiveType === 'slow-2g' ||
+     navigator.connection.effectiveType === '2g' ||
+     navigator.connection.effectiveType === '3g');
+const isLowPerformance = isMobile || isSlowConnection;
+
 function replaceCharAt(line, index, char) {
     if (!line || index < 0 || index >= line.length || line[index] === ' ') {
         return line;
@@ -119,7 +128,8 @@ function animateAsciiGlasses(element, art) {
         }
     }
 
-    if (eyeAnchor === -1 || reducedMotion) {
+    // On mobile or slow connection - show static ASCII without animation
+    if (eyeAnchor === -1 || reducedMotion || isLowPerformance) {
         element.textContent = art;
         fitAsciiToSection();
         window.addEventListener('resize', fitAsciiToSection);
@@ -353,6 +363,11 @@ if (asciiElement) {
 function initBinaryBackground() {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+    // Skip binary background entirely on slow connections
+    if (isSlowConnection) {
+        return;
+    }
+
     const layer = document.createElement('div');
     layer.className = 'binary-bg';
     document.body.prepend(layer);
@@ -370,22 +385,12 @@ function initBinaryBackground() {
     window.addEventListener('resize', syncBinaryLayerHeight);
     window.addEventListener('load', syncBinaryLayerHeight);
 
-    const isMobile = window.matchMedia('(max-width: 768px)').matches;
-    const maxParticles = reducedMotion
-        ? (isMobile ? 44 : 68)
-        : (isMobile ? 72 : 110);
-    const baseInterval = reducedMotion
-        ? (isMobile ? 460 : 390)
-        : (isMobile ? 340 : 270);
-    const clusterRadius = reducedMotion
-        ? (isMobile ? 6 : 7.5)
-        : (isMobile ? 8 : 10);
-    const clusterMin = reducedMotion
-        ? (isMobile ? 6 : 8)
-        : (isMobile ? 9 : 12);
-    const clusterMax = reducedMotion
-        ? (isMobile ? 10 : 13)
-        : (isMobile ? 15 : 22);
+    // Much lighter config for mobile
+    const maxParticles = isLowPerformance ? 25 : (reducedMotion ? 68 : 110);
+    const baseInterval = isLowPerformance ? 800 : (reducedMotion ? 390 : 270);
+    const clusterRadius = isLowPerformance ? 5 : (reducedMotion ? 7.5 : 10);
+    const clusterMin = isLowPerformance ? 3 : (reducedMotion ? 8 : 12);
+    const clusterMax = isLowPerformance ? 6 : (reducedMotion ? 13 : 22);
     let activeParticles = 0;
 
     function spawnParticleAt(x, y, intensity = 1) {
@@ -397,15 +402,15 @@ function initBinaryBackground() {
         particle.className = 'binary-particle';
         particle.textContent = Math.random() < 0.5 ? '0' : '1';
 
-        const duration = reducedMotion
-            ? (6.2 + Math.random() * 5.5)
-            : (4.6 + Math.random() * 4.2);
-        const size = reducedMotion
-            ? (10 + Math.random() * 8)
-            : (11 + Math.random() * 11);
-        const peak = reducedMotion
-            ? (0.2 + Math.random() * 0.14)
-            : (0.28 + Math.random() * 0.22);
+        const duration = isLowPerformance
+            ? (8 + Math.random() * 6)
+            : (reducedMotion ? (6.2 + Math.random() * 5.5) : (4.6 + Math.random() * 4.2));
+        const size = isLowPerformance
+            ? (10 + Math.random() * 6)
+            : (reducedMotion ? (10 + Math.random() * 8) : (11 + Math.random() * 11));
+        const peak = isLowPerformance
+            ? (0.15 + Math.random() * 0.1)
+            : (reducedMotion ? (0.2 + Math.random() * 0.14) : (0.28 + Math.random() * 0.22));
         const tunedPeak = Math.max(0.14, Math.min(0.62, peak * (0.65 + intensity * 0.55)));
 
         particle.style.left = `${x.toFixed(2)}%`;
@@ -446,18 +451,23 @@ function initBinaryBackground() {
         }
     }
 
-    for (let i = 0; i < (isMobile ? 8 : 12); i++) {
-        setTimeout(spawnCluster, i * 140);
+    // Fewer initial clusters on mobile
+    const initialClusters = isLowPerformance ? 4 : 12;
+    for (let i = 0; i < initialClusters; i++) {
+        setTimeout(spawnCluster, i * (isLowPerformance ? 300 : 140));
     }
 
     setInterval(() => {
         syncBinaryLayerHeight();
         spawnCluster();
-        if (Math.random() < (reducedMotion ? 0.28 : 0.45)) {
-            spawnCluster();
-        }
-        if (Math.random() < (reducedMotion ? 0.1 : 0.2)) {
-            spawnCluster();
+        // On mobile, don't spawn extra clusters
+        if (!isLowPerformance) {
+            if (Math.random() < (reducedMotion ? 0.28 : 0.45)) {
+                spawnCluster();
+            }
+            if (Math.random() < (reducedMotion ? 0.1 : 0.2)) {
+                spawnCluster();
+            }
         }
     }, baseInterval);
 }
