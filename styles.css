@@ -430,6 +430,20 @@ body {
         font-size: 0.85rem;
     }
 
+    .project-card {
+        width: calc(100vw - 3rem);
+        max-width: 300px;
+    }
+
+    .projects-scroll-wrapper {
+        padding: 1rem 0;
+        margin: -1rem 0;
+    }
+
+    .projects-track {
+        padding: 0 calc((100vw - min(100vw - 3rem, 300px)) / 2 - 1rem);
+    }
+
     .project-header {
         flex-direction: column;
         gap: 0.5rem;

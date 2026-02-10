@@ -505,10 +505,17 @@ const carousel = {
         });
     },
 
+    getCardDimensions() {
+        // Get actual card width from first card or use defaults
+        const firstCard = this.cards[0];
+        const cardWidth = firstCard ? firstCard.offsetWidth : 280;
+        const gap = window.innerWidth <= 768 ? 16 : 24;
+        return { cardWidth, gap };
+    },
+
     calculateCardsPerView() {
         const wrapperWidth = this.wrapper.offsetWidth;
-        const cardWidth = 280;
-        const gap = 24;
+        const { cardWidth, gap } = this.getCardDimensions();
         this.cardsPerView = Math.floor((wrapperWidth + gap) / (cardWidth + gap)) || 1;
         this.maxIndex = Math.max(0, this.totalCards - this.cardsPerView);
         if (this.currentIndex > this.maxIndex) {
@@ -530,9 +537,22 @@ const carousel = {
     },
 
     updateCarousel() {
-        const cardWidth = 280;
-        const gap = 24;
-        const offset = this.currentIndex * (cardWidth + gap);
+        const wrapperWidth = this.wrapper.offsetWidth;
+        const { cardWidth, gap } = this.getCardDimensions();
+
+        // On mobile (single card view), center the card
+        let offset;
+        if (this.cardsPerView === 1) {
+            // Center the card in the wrapper
+            const cardCenter = this.currentIndex * (cardWidth + gap) + cardWidth / 2;
+            offset = cardCenter - wrapperWidth / 2;
+            // Clamp offset to valid range
+            const maxOffset = (this.totalCards * (cardWidth + gap)) - gap - wrapperWidth;
+            offset = Math.max(0, Math.min(offset, maxOffset));
+        } else {
+            offset = this.currentIndex * (cardWidth + gap);
+        }
+
         this.track.style.transform = `translateX(-${offset}px)`;
 
         // Update buttons state
