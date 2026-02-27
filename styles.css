@@ -176,14 +176,11 @@ body {
 }
 
 .projects-scroll-wrapper {
-    overflow: hidden;
-    width: 100%;
-    position: relative;
-    padding: 1rem;
-    margin: -1rem;
-    /* Ensure cards aren't clipped */
     overflow-x: clip;
     overflow-y: visible;
+    width: 100%;
+    position: relative;
+    padding: 1rem 0;
 }
 
 .projects-track {
@@ -434,24 +431,22 @@ body {
     }
 
     .projects-carousel {
-        margin: 0 -1rem;
-        width: calc(100% + 2rem);
+        width: 100%;
     }
 
     .projects-scroll-wrapper {
-        padding: 1rem;
-        margin: 0;
-        overflow: visible;
+        padding: 0.5rem 0;
+        overflow-x: clip;
+        overflow-y: visible;
     }
 
     .project-card {
-        width: calc(100vw - 4rem);
-        max-width: 300px;
+        width: calc(100vw - 2rem);
+        max-width: 320px;
         flex-shrink: 0;
     }
 
     .projects-track {
-        padding-left: 1rem;
         gap: 1rem;
     }
 
